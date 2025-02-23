@@ -6,7 +6,7 @@ import Setting from "@/components/Setting";
 import Logout from "@/components/Logout";
 import Navigation from "@/components/NavigationHome";
 import { BottomNav } from "@/components/NavigationHome";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { getUserData } from "@/services/api";
 import { toast } from "react-toastify";
 export default function HomeLayout({ children }: { children: React.ReactNode }) {
@@ -15,22 +15,24 @@ export default function HomeLayout({ children }: { children: React.ReactNode }) 
   const [leaveNow, setLeaveNow] = useState(0);
   const [leaveThen, setLeaveThen] = useState(0);
   const [leaveAmountCount, setLeaveAmountCount] = useState(0);
-  const getUser = async () => {
-    try {
-      const userData = await getUserData();
-      setName(userData.data.name);
-      setLeaveNow(userData.data.amountOfLeave[0].amount);
-      setLeaveThen(userData.data.amountOfLeave[1].amount);
+  useEffect(() => {
+    const getUser = async () => {
+      try {
+        const userData = await getUserData();
+        setName(userData.data.name);
+        setLeaveNow(userData.data.amountOfLeave[0].amount);
+        setLeaveThen(userData.data.amountOfLeave[1].amount);
 
-      setLeaveAmountCount(userData.data.amountOfLeave.length);
+        setLeaveAmountCount(userData.data.amountOfLeave.length);
 
-      localStorage.setItem("nik", userData.data.employee.nik);
-    } catch (err) {
-      toast.error(err);
-    }
-  };
+        localStorage.setItem("nik", userData.data.employee.nik);
+      } catch (err) {
+        toast.error(err);
+      }
+    };
 
-  getUser();
+    getUser();
+  }, []);
 
   return (
     <div>

@@ -5,13 +5,14 @@ import { useState } from "react";
 import api from "@/lib/AxiosInterceptors";
 import Toast from "@/components/Toast";
 import { Icon } from "@iconify/react";
-import login from "@/services/api";
+import { login } from "@/services/api";
 export default function Home() {
   const [email, setEmail] = useState("");
   const [pw, setPw] = useState("");
   const [showPw, setShowPw] = useState(false);
 
-  const handleLogin = async () => {
+  const handleLogin = async (e) => {
+    e.preventDefault();
     try {
       const res = await login(email, pw);
       console.log(res);
@@ -22,7 +23,7 @@ export default function Home() {
 
       toast.success(res.message);
     } catch (err) {
-      toast.error(err);
+      toast.error(err.message || "Login failed");
     }
   };
 
@@ -51,7 +52,7 @@ export default function Home() {
           <Icon onClick={() => setShowPw(!showPw)} icon={showPw ? "mdi:eye-off-outline" : "mdi:eye-outline"} className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-500 cursor-pointer" />
         </div>
 
-        <button className="px-[88px] py-2 w-60 text-2xl items-center font-bold bg-blue-700 text-white rounded-3xl" type="submit" onClick={handleLogin}>
+        <button className="px-[88px] py-2 w-60 text-2xl items-center font-bold bg-blue-700 text-white rounded-3xl" type="submit">
           Login
         </button>
       </form>

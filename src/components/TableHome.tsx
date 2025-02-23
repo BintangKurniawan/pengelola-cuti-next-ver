@@ -1,14 +1,15 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-
 import NoteButton from "./NoteBtn";
-const TableHome = ({ data }) => {
-  const formatDate = (dateString: any) => {
+export const TableHome = ({ data, columns }) => {
+  const formatDate = (dateString) => {
+    if (!dateString) return "-";
     const options = { day: "numeric", month: "short", year: "numeric" };
-    const date = new Date(dateString);
-    return date.toLocaleDateString("en-UK", options);
+    return new Date(dateString).toLocaleDateString("en-UK", options);
   };
-
+  const getNestedValue = (obj, path) => {
+    return path.split(".").reduce((acc, key) => (acc && acc[key] ? acc[key] : null), obj);
+  };
   const getStatusClass = (status: string) => {
     switch (status) {
       case "APPROVE":
@@ -22,64 +23,53 @@ const TableHome = ({ data }) => {
     }
   };
 
+  console.log(data);
+  console.log(columns);
+
   return (
     <div className="overflow-x-auto">
       <table className="min-w-full bg-white shadow-md rounded-lg my-table table-rounded q-table text-xs">
         <thead className="border-b-2">
-          <tr className=" capitalize text-sm leading-normal">
-            <th className="py-3 px-6 text-center">Status</th>
-            <th className="py-3 px-6 text-center">Type</th>
-            <th className="py-3 px-6 text-center">Start</th>
-            <th className="py-3 px-6 text-center">End</th>
-            <th className="py-3 px-6 text-center">Leave Use</th>
-            <th className="py-3 px-6 text-center">Reason</th>
-            <th className="py-3 px-6 text-center">Note</th>
+          <tr className="capitalize text-sm leading-normal">
+            {columns.map((col, index) => (
+              <th key={index} className="py-3 px-6 text-center">
+                {col.label}
+              </th>
+            ))}
           </tr>
         </thead>
         <tbody className="text-gray-700 text-sm">
           {data && data.length > 0 ? (
-            data.map((row: any, index) => (
-              <tr key={index} className="border-b border-gray-200">
-                {/* Status */}
-                <td className="py-3 px-6 text-center">
-                  <div className={`px-3 py-2 rounded-xl ${getStatusClass(row.status)}`}>
-                    <span className="font-semibold">{row.status}</span>
-                  </div>
-                </td>
-
-                {/* Type */}
-                <td className="py-3 px-6 text-center">
-                  <span className="font-semibold">{row.typeOfLeave.name}</span>
-                </td>
-
-                {/* Start Date */}
-                <td className="py-3 px-6 text-center">
-                  <span className="font-semibold">{formatDate(row.startLeave)}</span>
-                </td>
-
-                {/* End Date */}
-                <td className="py-3 px-6 text-center">
-                  <span className="font-semibold">{formatDate(row.endLeave)}</span>
-                </td>
-
-                {/* Leave Use */}
-                <td className="py-3 px-6 text-center">
-                  <span>{row.leaveUse} day(s)</span>
-                </td>
-
-                <td className="py-3 px-6 text-center">
-                  <span>{row.reason}</span>
-                </td>
-
-                {/* Note */}
-                <td className="py-3 px-6 text-center">
-                  {row.status === "REJECT" && row.note ? <NoteButton note={row.note} approved={row.rejectBy} /> : row.status === "APPROVE" ? <NoteButton approved={row.approveBy} /> : <p>Note not found</p>}
-                </td>
+            data.map((row, rowIndex) => (
+              <tr key={rowIndex} className="border-b border-gray-200">
+                {columns.map((col, colIndex) => (
+                  <td key={colIndex} className="py-3 px-6 text-center">
+                    {col.dataKey === "status" ? (
+                      <div className={`px-3 py-2 rounded-xl ${getStatusClass(row[col.dataKey])}`}>
+                        <span className="font-semibold">{row[col.dataKey]}</span>
+                      </div>
+                    ) : col.format === "date" ? (
+                      <span className="font-semibold">{formatDate(row[col.dataKey])}</span>
+                    ) : col.label === "Leave Use" || col.label === "Amount" ? (
+                      <span>{row[col.dataKey]} day(s)</span>
+                    ) : col.dataKey === "note" ? (
+                      row.status === "REJECT" && row.note ? (
+                        <NoteButton note={row.note} approved={row.rejectBy} />
+                      ) : row.status === "APPROVE" ? (
+                        <NoteButton approved={row.approveBy} />
+                      ) : (
+                        <p>Note not found</p>
+                      )
+                    ) : (
+                      <span>{getNestedValue(row, col.dataKey) || "-"}</span>
+                    )}
+                  </td>
+                ))}
               </tr>
             ))
           ) : (
             <tr>
-              <td colSpan={6} className="text-center py-4">
+              <td colSpan={columns.length} className="text-center py-4">
                 No data available
               </td>
             </tr>
@@ -133,5 +123,3 @@ const TableHome = ({ data }) => {
     </div>
   );
 };
-
-export default TableHome;
